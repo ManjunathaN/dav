@@ -1165,7 +1165,7 @@ var listCalendarObjects = _co2['default'].wrap(regeneratorRuntime.mark(function 
           namespace: ns.CALDAV
         }];
 
-        if (!_.contains(calendar.url, 'caldav.icloud.com')) {
+        if (calendar.url && calendar.url.indexOf('caldav.icloud.com') > -1) {
           customProps.push({
             name: 'getetag',
             namespace: ns.DAV
@@ -2040,10 +2040,20 @@ var _model = _dereq_('./model');
 
 _defaults(exports, _interopExportWildcard(_model, _defaults));
 
+var _parser = _dereq_('./parser');
+
+_defaults(exports, _interopExportWildcard(_parser, _defaults));
+
 Object.defineProperty(exports, 'Request', {
   enumerable: true,
   get: function get() {
     return _request.Request;
+  }
+});
+Object.defineProperty(exports, 'getProps', {
+  enumerable: true,
+  get: function get() {
+    return _request.getProps;
   }
 });
 
@@ -2065,7 +2075,7 @@ exports.debug = _debug2['default'];
 exports.ns = ns;
 exports.request = request;
 exports.transport = transport;
-},{"../package":33,"./accounts":1,"./calendars":2,"./client":4,"./contacts":5,"./debug":6,"./model":9,"./namespace":10,"./request":12,"./sandbox":13,"./transport":21}],9:[function(_dereq_,module,exports){
+},{"../package":33,"./accounts":1,"./calendars":2,"./client":4,"./contacts":5,"./debug":6,"./model":9,"./namespace":10,"./parser":11,"./request":12,"./sandbox":13,"./transport":21}],9:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2724,7 +2734,7 @@ var _prop = _dereq_('./prop');
 var _prop2 = _interopRequireDefault(_prop);
 
 function addressBookQuery(object) {
-  return '<card:addressbook-query xmlns:card="urn:ietf:params:xml:ns:carddav"\n                          xmlns:d="DAV:">\n    <d:prop>\n      ' + object.props.map(_prop2['default']) + '\n    </d:prop>\n    <!-- According to http://stackoverflow.com/questions/23742568/google-carddav-api-addressbook-multiget-returns-400-bad-request,\n         Google\'s CardDAV server requires a filter element. I don\'t think all addressbook-query calls need a filter in the spec though? -->\n    <card:filter>\n      <card:prop-filter name="FN">\n      </card:prop-filter>\n    </card:filter>\n  </card:addressbook-query>';
+  return '<card:addressbook-query xmlns:card="urn:ietf:params:xml:ns:carddav"\n                          xmlns:d="DAV:">\n    <d:prop>\n      ' + object.props.map(_prop2['default']).join('') + '\n    </d:prop>\n    <!-- According to http://stackoverflow.com/questions/23742568/google-carddav-api-addressbook-multiget-returns-400-bad-request,\n         Google\'s CardDAV server requires a filter element. I don\'t think all addressbook-query calls need a filter in the spec though? -->\n    <card:filter>\n      <card:prop-filter name="FN">\n      </card:prop-filter>\n    </card:filter>\n  </card:addressbook-query>';
 }
 
 module.exports = exports['default'];
@@ -2747,7 +2757,7 @@ var _prop = _dereq_('./prop');
 var _prop2 = _interopRequireDefault(_prop);
 
 function calendarQuery(object) {
-  return '<c:calendar-query xmlns:c="urn:ietf:params:xml:ns:caldav"\n                    xmlns:cs="http://calendarserver.org/ns/"\n                    xmlns:d="DAV:">\n    <d:prop>\n      ' + object.props.map(_prop2['default']) + '\n    </d:prop>\n    <c:filter>\n      ' + object.filters.map(_filter2['default']) + '\n    </c:filter>\n    ' + (object.timezone ? '<c:timezone>' + object.timezone + '</c:timezone>' : '') + '\n  </c:calendar-query>';
+  return '<c:calendar-query xmlns:c="urn:ietf:params:xml:ns:caldav"\n                    xmlns:cs="http://calendarserver.org/ns/"\n                    xmlns:d="DAV:">\n    <d:prop>\n      ' + object.props.map(_prop2['default']).join('') + '\n    </d:prop>\n    <c:filter>\n      ' + object.filters.map(_filter2['default']).join('') + '\n    </c:filter>\n    ' + (object.timezone ? '<c:timezone>' + object.timezone + '</c:timezone>' : '') + '\n  </c:calendar-query>';
 }
 
 module.exports = exports['default'];
@@ -2768,7 +2778,7 @@ function filter(item) {
     return u;
   }
 
-  var children = item.children.map(filter);
+  var children = item.children.map(filter).join('');
   return '<c:' + item.type + ' ' + formatAttrs(item.attrs) + '>\n            ' + children + '\n          </c:' + item.type + '>';
 }
 
@@ -2873,7 +2883,7 @@ var _prop = _dereq_('./prop');
 var _prop2 = _interopRequireDefault(_prop);
 
 function propfind(object) {
-  return '<d:propfind xmlns:c="urn:ietf:params:xml:ns:caldav"\n              xmlns:card="urn:ietf:params:xml:ns:carddav"\n              xmlns:cs="http://calendarserver.org/ns/"\n              xmlns:d="DAV:">\n    <d:prop>\n      ' + object.props.map(_prop2['default']) + '\n    </d:prop>\n  </d:propfind>';
+  return '<d:propfind xmlns:c="urn:ietf:params:xml:ns:caldav"\n              xmlns:card="urn:ietf:params:xml:ns:carddav"\n              xmlns:cs="http://calendarserver.org/ns/"\n              xmlns:d="DAV:">\n    <d:prop>\n      ' + object.props.map(_prop2['default']).join('') + '\n    </d:prop>\n  </d:propfind>';
 }
 
 module.exports = exports['default'];
@@ -2892,7 +2902,7 @@ var _prop = _dereq_('./prop');
 var _prop2 = _interopRequireDefault(_prop);
 
 function syncCollection(object) {
-  return '<d:sync-collection xmlns:c="urn:ietf:params:xml:ns:caldav"\n                     xmlns:card="urn:ietf:params:xml:ns:carddav"\n                     xmlns:d="DAV:">\n    <d:sync-token>' + object.syncToken + '</d:sync-token>\n    <d:sync-level>' + object.syncLevel + '</d:sync-level>\n    <d:prop>\n      ' + object.props.map(_prop2['default']) + '\n    </d:prop>\n  </d:sync-collection>';
+  return '<d:sync-collection xmlns:c="urn:ietf:params:xml:ns:caldav"\n                     xmlns:card="urn:ietf:params:xml:ns:carddav"\n                     xmlns:d="DAV:">\n    <d:sync-token>' + object.syncToken + '</d:sync-token>\n    <d:sync-level>' + object.syncLevel + '</d:sync-level>\n    <d:prop>\n      ' + object.props.map(_prop2['default']).join('') + '\n    </d:prop>\n  </d:sync-collection>';
 }
 
 module.exports = exports['default'];
@@ -7174,7 +7184,7 @@ module.exports={
   },
 
   "devDependencies": {
-    "babel": "5.2.1",
+    "babel": "5.8.21",
     "browserify": "4.1.5",
     "chai": "1.9.1",
     "doctoc": "0.7.1",
