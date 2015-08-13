@@ -676,58 +676,69 @@ var serviceDiscovery = _co2['default'].wrap(regeneratorRuntime.mark(function cal
       case 0:
         debug('Attempt service discovery.');
 
+        if (!options.serviceURL) {
+          context$1$0.next = 4;
+          break;
+        }
+
+        debug('options.serviceURL called ::', options.serviceURL);
+        return context$1$0.abrupt('return', options.serviceURL);
+
+      case 4:
         endpoint = _url2['default'].parse(account.server);
 
-        endpoint.protocol = endpoint.protocol || 'http';uri = _url2['default'].format({
+        endpoint.protocol = endpoint.protocol || 'http'; // TODO(gareth) https?
+
+        uri = _url2['default'].format({
           protocol: endpoint.protocol,
           host: endpoint.host,
           pathname: '/.well-known/' + options.accountType
         });
         req = request.basic({ method: 'GET' });
-        context$1$0.prev = 5;
-        context$1$0.next = 8;
-        return options.xhr.send(req, uri, { sandbox: options.sandbox });
+        context$1$0.prev = 8;
+        context$1$0.next = 11;
+        return options.xhr.send(req, uri, { sandbox: options.sandbox, headers: options.headers });
 
-      case 8:
+      case 11:
         xhr = context$1$0.sent;
 
         if (!(xhr.status >= 300 && xhr.status < 400)) {
-          context$1$0.next = 14;
+          context$1$0.next = 17;
           break;
         }
 
         _location = xhr.getResponseHeader('Location');
 
         if (!(typeof _location === 'string' && _location.length)) {
-          context$1$0.next = 14;
+          context$1$0.next = 17;
           break;
         }
 
         debug('Discovery redirected to ' + _location);
         return context$1$0.abrupt('return', _url2['default'].format({
-          protocol: endpoint.protocol,
-          host: endpoint.host,
+          // protocol: endpoint.protocol,
+          // host: endpoint.host,
           pathname: _location
         }));
 
-      case 14:
-        context$1$0.next = 19;
+      case 17:
+        context$1$0.next = 22;
         break;
 
-      case 16:
-        context$1$0.prev = 16;
-        context$1$0.t0 = context$1$0['catch'](5);
+      case 19:
+        context$1$0.prev = 19;
+        context$1$0.t0 = context$1$0['catch'](8);
 
         debug('Discovery failed... failover to the provided url');
 
-      case 19:
+      case 22:
         return context$1$0.abrupt('return', endpoint.href);
 
-      case 20:
+      case 23:
       case 'end':
         return context$1$0.stop();
     }
-  }, callee$0$0, this, [[5, 16]]);
+  }, callee$0$0, this, [[8, 19]]);
 }));
 
 /**
@@ -741,24 +752,34 @@ var principalUrl = _co2['default'].wrap(regeneratorRuntime.mark(function callee$
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
         debug('Fetch principal url from context path ' + account.rootUrl + '.');
+
+        if (!options.serviceURL) {
+          context$1$0.next = 4;
+          break;
+        }
+
+        debug('options.serviceURL called ::', options.serviceURL);
+        return context$1$0.abrupt('return', options.serviceURL);
+
+      case 4:
         req = request.propfind({
           props: [{ name: 'current-user-principal', namespace: ns.DAV }],
           depth: 0,
           mergeResponses: true
         });
-        context$1$0.next = 4;
+        context$1$0.next = 7;
         return options.xhr.send(req, account.rootUrl, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
-      case 4:
+      case 7:
         res = context$1$0.sent;
         container = res.props;
 
         debug('Received principal: ' + container.currentUserPrincipal);
         return context$1$0.abrupt('return', _url2['default'].resolve(account.rootUrl, container.currentUserPrincipal));
 
-      case 8:
+      case 11:
       case 'end':
         return context$1$0.stop();
     }
@@ -774,6 +795,16 @@ var homeUrl = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(a
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
         debug('Fetch home url from principal url ' + account.principalUrl + '.');
+
+        if (!options.serviceURL) {
+          context$1$0.next = 4;
+          break;
+        }
+
+        debug('options.serviceURL called ::', options.serviceURL);
+        return context$1$0.abrupt('return', options.serviceURL);
+
+      case 4:
         prop = undefined;
 
         if (options.accountType === 'caldav') {
@@ -783,12 +814,12 @@ var homeUrl = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(a
         }
 
         req = request.propfind({ props: [prop] });
-        context$1$0.next = 6;
+        context$1$0.next = 9;
         return options.xhr.send(req, account.principalUrl, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
-      case 6:
+      case 9:
         responses = context$1$0.sent;
         response = responses.find(function (response) {
           return (0, _fuzzy_url_equals2['default'])(account.principalUrl, response.href);
@@ -806,7 +837,7 @@ var homeUrl = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(a
 
         return context$1$0.abrupt('return', _url2['default'].resolve(account.rootUrl, href));
 
-      case 12:
+      case 15:
       case 'end':
         return context$1$0.stop();
     }
@@ -934,7 +965,6 @@ exports.createAccount = _co2['default'].wrap(regeneratorRuntime.mark(function ca
     }
   }, callee$0$0, this);
 }));
-// TODO(gareth) https?
 
 // http redirect.
 },{"./calendars":2,"./contacts":5,"./debug":6,"./fuzzy_url_equals":7,"./model":9,"./namespace":10,"./request":12,"co":29,"url":28}],2:[function(_dereq_,module,exports){
@@ -995,7 +1025,7 @@ var listCalendars = _co2['default'].wrap(regeneratorRuntime.mark(function callee
         });
         context$1$0.next = 4;
         return options.xhr.send(req, account.homeUrl, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
       case 4:
@@ -1005,7 +1035,10 @@ var listCalendars = _co2['default'].wrap(regeneratorRuntime.mark(function callee
         cals = responses.filter(function (res) {
           // We only want the calendar object if it does events.
           var components = res.props.supportedCalendarComponentSet;
-          return components && components.indexOf('VEVENT') !== -1;
+          // return components && components.indexOf('VEVENT') !== -1;
+          var resourceTypes = res.props.resourcetype;
+          // debug('resourceTypes======',resourceTypes);
+          return components && components.indexOf('VEVENT') !== -1 && resourceTypes.indexOf('calendar') !== -1;
         }).map(function (res) {
           debug('Found calendar ' + res.props.displayname + ',\n             props: ' + JSON.stringify(res.props));
           return new _model.Calendar({
@@ -1021,7 +1054,13 @@ var listCalendars = _co2['default'].wrap(regeneratorRuntime.mark(function callee
             syncToken: res.props.syncToken
           });
         });
-        context$1$0.next = 9;
+
+        if (options.skipFetchSupportedReportSet) {
+          context$1$0.next = 10;
+          break;
+        }
+
+        context$1$0.next = 10;
         return cals.map(_co2['default'].wrap(regeneratorRuntime.mark(function callee$1$0(cal) {
           return regeneratorRuntime.wrap(function callee$1$0$(context$2$0) {
             while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -1039,10 +1078,10 @@ var listCalendars = _co2['default'].wrap(regeneratorRuntime.mark(function callee
           }, callee$1$0, this);
         })));
 
-      case 9:
+      case 10:
         return context$1$0.abrupt('return', cals);
 
-      case 10:
+      case 11:
       case 'end':
         return context$1$0.stop();
     }
@@ -1107,7 +1146,7 @@ function deleteCalendarObject(calendarObject, options) {
  *   (dav.Transport) xhr - request sender.
  */
 var listCalendarObjects = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(calendar, options) {
-  var filters, req, responses;
+  var filters, customProps, req, responses;
   return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
@@ -1121,17 +1160,30 @@ var listCalendarObjects = _co2['default'].wrap(regeneratorRuntime.mark(function 
             attrs: { name: 'VEVENT' }
           }]
         }];
+        customProps = [{
+          name: 'calendar-data',
+          namespace: ns.CALDAV
+        }];
+
+        if (!_.contains(calendar.url, 'caldav.icloud.com')) {
+          customProps.push({
+            name: 'getetag',
+            namespace: ns.DAV
+          });
+        }
+
         req = request.calendarQuery({
           depth: 1,
-          props: [{ name: 'getetag', namespace: ns.DAV }, { name: 'calendar-data', namespace: ns.CALDAV }],
+          props: customProps,
           filters: filters
         });
-        context$1$0.next = 5;
+        context$1$0.next = 7;
         return options.xhr.send(req, calendar.url, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox,
+          headers: options.headers
         });
 
-      case 5:
+      case 7:
         responses = context$1$0.sent;
         return context$1$0.abrupt('return', responses.map(function (res) {
           debug('Found calendar object with url ' + res.href);
@@ -1144,7 +1196,7 @@ var listCalendarObjects = _co2['default'].wrap(regeneratorRuntime.mark(function 
           });
         }));
 
-      case 7:
+      case 9:
       case 'end':
         return context$1$0.stop();
     }
@@ -1183,7 +1235,7 @@ function syncCalendar(calendar, options) {
  *   (dav.Transport) xhr - request sender.
  */
 var syncCaldavAccount = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(account) {
-  var options = arguments[1] === undefined ? {} : arguments[1];
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
   var cals;
   return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
@@ -1294,11 +1346,20 @@ var webdavSync = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$
         });
         context$1$0.next = 3;
         return options.xhr.send(req, calendar.url, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
       case 3:
         result = context$1$0.sent;
+
+        if (!options.fetchOnlySyncObjects) {
+          context$1$0.next = 6;
+          break;
+        }
+
+        return context$1$0.abrupt('return', result);
+
+      case 6:
 
         // TODO(gareth): Handle creations and deletions.
         result.responses.forEach(function (response) {
@@ -1318,7 +1379,7 @@ var webdavSync = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$
         calendar.syncToken = result.syncToken;
         return context$1$0.abrupt('return', calendar);
 
-      case 7:
+      case 9:
       case 'end':
         return context$1$0.stop();
     }
@@ -1336,7 +1397,7 @@ Object.defineProperty(exports, '__esModule', {
 exports['default'] = camelize;
 
 function camelize(str) {
-  var delimiter = arguments[1] === undefined ? '_' : arguments[1];
+  var delimiter = arguments.length <= 1 || arguments[1] === undefined ? '_' : arguments[1];
 
   var words = str.split(delimiter);
   return [words[0]].concat(words.slice(1).map(function (word) {
@@ -1386,7 +1447,7 @@ var contacts = _interopRequireWildcard(_contacts);
 
 var Client = (function () {
   function Client(xhr) {
-    var options = arguments[1] === undefined ? {} : arguments[1];
+    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, Client);
 
@@ -1399,21 +1460,21 @@ var Client = (function () {
     this._contacts = contacts;
   }
 
+  /**
+   * @param {dav.Request} req - dav request.
+   * @param {String} uri - where to send request.
+   * @return {Promise} a promise that will be resolved with an xhr request
+   *     after its readyState is 4 or the result of applying an optional
+   *     request `transformResponse` function to the xhr object after its
+   *     readyState is 4.
+   *
+   * Options:
+   *
+   *   (Object) sandbox - optional request sandbox.
+   */
+
   _createClass(Client, [{
     key: 'send',
-
-    /**
-     * @param {dav.Request} req - dav request.
-     * @param {String} uri - where to send request.
-     * @return {Promise} a promise that will be resolved with an xhr request
-     *     after its readyState is 4 or the result of applying an optional
-     *     request `transformResponse` function to the xhr object after its
-     *     readyState is 4.
-     *
-     * Options:
-     *
-     *   (Object) sandbox - optional request sandbox.
-     */
     value: function send(req, uri, options) {
       if (this.baseUrl) {
         var urlObj = _url2['default'].parse(uri);
@@ -1425,7 +1486,7 @@ var Client = (function () {
   }, {
     key: 'createAccount',
     value: function createAccount() {
-      var options = arguments[0] === undefined ? {} : arguments[0];
+      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
       options.xhr = options.xhr || this.xhr;
       return accounts.createAccount(options);
@@ -1433,7 +1494,7 @@ var Client = (function () {
   }, {
     key: 'createCalendarObject',
     value: function createCalendarObject(calendar) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return calendars.createCalendarObject(calendar, options);
@@ -1441,7 +1502,7 @@ var Client = (function () {
   }, {
     key: 'updateCalendarObject',
     value: function updateCalendarObject(calendarObject) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return calendars.updateCalendarObject(calendarObject, options);
@@ -1449,7 +1510,7 @@ var Client = (function () {
   }, {
     key: 'deleteCalendarObject',
     value: function deleteCalendarObject(calendarObject) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return calendars.deleteCalendarObject(calendarObject, options);
@@ -1457,7 +1518,7 @@ var Client = (function () {
   }, {
     key: 'syncCalendar',
     value: function syncCalendar(calendar) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return calendars.syncCalendar(calendar, options);
@@ -1465,7 +1526,7 @@ var Client = (function () {
   }, {
     key: 'syncCaldavAccount',
     value: function syncCaldavAccount(account) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return calendars.syncCaldavAccount(account, options);
@@ -1473,7 +1534,7 @@ var Client = (function () {
   }, {
     key: 'createCard',
     value: function createCard(addressBook) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return contacts.createCard(addressBook, options);
@@ -1481,7 +1542,7 @@ var Client = (function () {
   }, {
     key: 'updateCard',
     value: function updateCard(card) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return contacts.updateCard(card, options);
@@ -1489,7 +1550,7 @@ var Client = (function () {
   }, {
     key: 'deleteCard',
     value: function deleteCard(card) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return contacts.deleteCard(card, options);
@@ -1497,7 +1558,7 @@ var Client = (function () {
   }, {
     key: 'syncAddressBook',
     value: function syncAddressBook(addressBook) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return contacts.syncAddressBook(addressBook, options);
@@ -1505,7 +1566,7 @@ var Client = (function () {
   }, {
     key: 'syncCarddavAccount',
     value: function syncCarddavAccount(account) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       options.xhr = options.xhr || this.xhr;
       return contacts.syncCarddavAccount(account, options);
@@ -1574,7 +1635,7 @@ var listAddressBooks = _co2['default'].wrap(regeneratorRuntime.mark(function cal
         });
         context$1$0.next = 4;
         return options.xhr.send(req, account.homeUrl, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
       case 4:
@@ -1657,7 +1718,7 @@ var listVCards = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$
         });
         context$1$0.next = 4;
         return options.xhr.send(req, addressBook.url, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
       case 4:
@@ -1738,7 +1799,7 @@ function syncAddressBook(addressBook, options) {
  *   (dav.Transport) xhr - request sender.
  */
 var syncCarddavAccount = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(account) {
-  var options = arguments[1] === undefined ? {} : arguments[1];
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
   var addressBooks;
   return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
@@ -1847,7 +1908,7 @@ var webdavSync = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$
         });
         context$1$0.next = 3;
         return options.xhr.send(req, addressBook.url, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
       case 3:
@@ -1916,6 +1977,8 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
+function _interopExportWildcard(obj, defaults) { var newObj = defaults({}, obj); delete newObj['default']; return newObj; }
+
 function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
@@ -1958,7 +2021,7 @@ Object.defineProperty(exports, 'createAccount', {
 
 var _calendars = _dereq_('./calendars');
 
-_defaults(exports, _interopRequireWildcard(_calendars));
+_defaults(exports, _interopExportWildcard(_calendars, _defaults));
 
 var _client = _dereq_('./client');
 
@@ -1971,11 +2034,11 @@ Object.defineProperty(exports, 'Client', {
 
 var _contacts = _dereq_('./contacts');
 
-_defaults(exports, _interopRequireWildcard(_contacts));
+_defaults(exports, _interopExportWildcard(_contacts, _defaults));
 
 var _model = _dereq_('./model');
 
-_defaults(exports, _interopRequireWildcard(_model));
+_defaults(exports, _interopExportWildcard(_model, _defaults));
 
 Object.defineProperty(exports, 'Request', {
   enumerable: true,
@@ -2009,9 +2072,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2027,9 +2090,7 @@ var Account = function Account(options) {
     calendars: null,
     addressBooks: null
   }, options);
-};
-
-exports.Account = Account;
+}
 
 /**
  * Options:
@@ -2044,6 +2105,9 @@ exports.Account = Account;
  *   (String) refreshToken - oauth refresh token.
  *   (Number) expiration - unix time for access token expiration.
  */
+;
+
+exports.Account = Account;
 
 var Credentials = function Credentials(options) {
   _classCallCheck(this, Credentials);
@@ -2084,13 +2148,13 @@ var DAVCollection = function DAVCollection(options) {
 exports.DAVCollection = DAVCollection;
 
 var AddressBook = (function (_DAVCollection) {
+  _inherits(AddressBook, _DAVCollection);
+
   function AddressBook(options) {
     _classCallCheck(this, AddressBook);
 
     _get(Object.getPrototypeOf(AddressBook.prototype), "constructor", this).call(this, options);
   }
-
-  _inherits(AddressBook, _DAVCollection);
 
   return AddressBook;
 })(DAVCollection);
@@ -2098,6 +2162,8 @@ var AddressBook = (function (_DAVCollection) {
 exports.AddressBook = AddressBook;
 
 var Calendar = (function (_DAVCollection2) {
+  _inherits(Calendar, _DAVCollection2);
+
   function Calendar(options) {
     _classCallCheck(this, Calendar);
 
@@ -2107,8 +2173,6 @@ var Calendar = (function (_DAVCollection2) {
       timezone: null
     }, options);
   }
-
-  _inherits(Calendar, _DAVCollection2);
 
   return Calendar;
 })(DAVCollection);
@@ -2128,6 +2192,8 @@ var DAVObject = function DAVObject(options) {
 exports.DAVObject = DAVObject;
 
 var CalendarObject = (function (_DAVObject) {
+  _inherits(CalendarObject, _DAVObject);
+
   function CalendarObject(options) {
     _classCallCheck(this, CalendarObject);
 
@@ -2138,14 +2204,14 @@ var CalendarObject = (function (_DAVObject) {
     }, options);
   }
 
-  _inherits(CalendarObject, _DAVObject);
-
   return CalendarObject;
 })(DAVObject);
 
 exports.CalendarObject = CalendarObject;
 
 var VCard = (function (_DAVObject2) {
+  _inherits(VCard, _DAVObject2);
+
   function VCard(options) {
     _classCallCheck(this, VCard);
 
@@ -2155,8 +2221,6 @@ var VCard = (function (_DAVObject2) {
       addressData: null
     }, options);
   }
-
-  _inherits(VCard, _DAVObject2);
 
   return VCard;
 })(DAVObject);
@@ -2517,7 +2581,8 @@ function syncCollection(options) {
   function transformResponse(xhr) {
     var object = (0, _parser.multistatus)(xhr.responseText);
     var responses = object.response.map(function (res) {
-      return { href: res.href, props: getProps(res.propstat) };
+      var status = res.status ? res.status : res.propstat[0]["status"];
+      return { href: res.href, status: status, props: getProps(res.propstat) };
     });
 
     return { responses: responses, syncToken: object.syncToken };
@@ -2532,7 +2597,7 @@ function syncCollection(options) {
 }
 
 var Request = function Request() {
-  var options = arguments[0] === undefined ? {} : arguments[0];
+  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
   _classCallCheck(this, Request);
 
@@ -2696,7 +2761,11 @@ exports['default'] = filter;
 
 function filter(item) {
   if (!item.children || !item.children.length) {
-    return '<c:' + item.type + ' ' + formatAttrs(item.attrs) + '/>';
+    var u = { string: item };
+    if (item.type) {
+      return '<c:' + item.type + ' ' + formatAttrs(item.attrs) + '/>';
+    }
+    return u;
   }
 
   var children = item.children.map(filter);
@@ -2709,7 +2778,7 @@ function formatAttrs(attrs) {
   }
 
   return Object.keys(attrs).map(function (attr) {
-    return '' + attr + '="' + attrs[attr] + '"';
+    return attr + '="' + attrs[attr] + '"';
   }).join(' ');
 }
 module.exports = exports['default'];
@@ -2823,7 +2892,7 @@ var _prop = _dereq_('./prop');
 var _prop2 = _interopRequireDefault(_prop);
 
 function syncCollection(object) {
-  return '<d:sync-collection xmlns:c="urn:ietf:params:xml:ns:caldav"\n                     xmlns:card="urn:ietf:params:xml:ns:carddav"\n                     xmlns:d="DAV:">\n    <d:sync-level>' + object.syncLevel + '</d:sync-level>\n    <d:sync-token>' + object.syncToken + '</d:sync-token>\n    <d:prop>\n      ' + object.props.map(_prop2['default']) + '\n    </d:prop>\n  </d:sync-collection>';
+  return '<d:sync-collection xmlns:c="urn:ietf:params:xml:ns:caldav"\n                     xmlns:card="urn:ietf:params:xml:ns:carddav"\n                     xmlns:d="DAV:">\n    <d:sync-token>' + object.syncToken + '</d:sync-token>\n    <d:sync-level>' + object.syncLevel + '</d:sync-level>\n    <d:prop>\n      ' + object.props.map(_prop2['default']) + '\n    </d:prop>\n  </d:sync-collection>';
 }
 
 module.exports = exports['default'];
@@ -2834,13 +2903,13 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -2867,19 +2936,19 @@ var Transport = (function () {
     this.credentials = credentials || null;
   }
 
+  /**
+   * @param {dav.Request} request object with request info.
+   * @return {Promise} a promise that will be resolved with an xhr request after
+   *     its readyState is 4 or the result of applying an optional request
+   *     `transformResponse` function to the xhr object after its readyState is 4.
+   *
+   * Options:
+   *
+   *   (Object) sandbox - optional request sandbox.
+   */
+
   _createClass(Transport, [{
     key: 'send',
-
-    /**
-     * @param {dav.Request} request object with request info.
-     * @return {Promise} a promise that will be resolved with an xhr request after
-     *     its readyState is 4 or the result of applying an optional request
-     *     `transformResponse` function to the xhr object after its readyState is 4.
-     *
-     * Options:
-     *
-     *   (Object) sandbox - optional request sandbox.
-     */
     value: function send() {}
   }]);
 
@@ -2889,6 +2958,8 @@ var Transport = (function () {
 exports.Transport = Transport;
 
 var Basic = (function (_Transport) {
+  _inherits(Basic, _Transport);
+
   /**
    * @param {dav.Credentials} credentials user authorization.
    */
@@ -2899,13 +2970,15 @@ var Basic = (function (_Transport) {
     _get(Object.getPrototypeOf(Basic.prototype), 'constructor', this).call(this, credentials);
   }
 
-  _inherits(Basic, _Transport);
+  /**
+   * @param {dav.Credentials} credentials user authorization.
+   */
 
   _createClass(Basic, [{
     key: 'send',
     value: function send(request, url, options) {
       return (0, _co2['default'])(regeneratorRuntime.mark(function callee$2$0() {
-        var sandbox, transformRequest, transformResponse, onerror, xhr, result;
+        var sandbox, transformRequest, transformResponse, onerror, headers, xhr, key, result;
         return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
           while (1) switch (context$3$0.prev = context$3$0.next) {
             case 0:
@@ -2913,38 +2986,47 @@ var Basic = (function (_Transport) {
               transformRequest = request.transformRequest;
               transformResponse = request.transformResponse;
               onerror = request.onerror;
+              headers = options.headers || {};
               xhr = new _xmlhttprequest2['default']();
 
               if (sandbox) sandbox.add(xhr);
-              xhr.open(request.method, url, true, /* async */this.credentials.username, this.credentials.password);
+              xhr.open(request.method, url, true, /* async */
+              this.credentials.username, this.credentials.password);
 
               if (transformRequest) transformRequest(xhr);
 
+              // _.forEach(_.keys(headers), function (n) {
+              //   xhr.setRequestHeader(n, headers[n]);
+              // });
+              for (key in headers) {
+                xhr.setRequestHeader(key, headers[key]);
+              }
+
               result = undefined;
-              context$3$0.prev = 9;
-              context$3$0.next = 12;
+              context$3$0.prev = 11;
+              context$3$0.next = 14;
               return xhr.send(request.requestData);
 
-            case 12:
+            case 14:
               result = transformResponse ? transformResponse(xhr) : xhr;
-              context$3$0.next = 19;
+              context$3$0.next = 21;
               break;
 
-            case 15:
-              context$3$0.prev = 15;
-              context$3$0.t0 = context$3$0['catch'](9);
+            case 17:
+              context$3$0.prev = 17;
+              context$3$0.t0 = context$3$0['catch'](11);
 
               if (onerror) onerror(context$3$0.t0);
               throw context$3$0.t0;
 
-            case 19:
+            case 21:
               return context$3$0.abrupt('return', result);
 
-            case 20:
+            case 22:
             case 'end':
               return context$3$0.stop();
           }
-        }, callee$2$0, this, [[9, 15]]);
+        }, callee$2$0, this, [[11, 17]]);
       }).bind(this));
     }
   }]);
@@ -2954,26 +3036,26 @@ var Basic = (function (_Transport) {
 
 exports.Basic = Basic;
 
-/**
- * @param {dav.Credentials} credentials user authorization.
- */
-
 var OAuth2 = (function (_Transport2) {
+  _inherits(OAuth2, _Transport2);
+
   function OAuth2(credentials) {
     _classCallCheck(this, OAuth2);
 
     _get(Object.getPrototypeOf(OAuth2.prototype), 'constructor', this).call(this, credentials);
   }
 
-  _inherits(OAuth2, _Transport2);
+  /**
+   * @return {Promise} promise that will resolve with access token.
+   */
 
   _createClass(OAuth2, [{
     key: 'send',
     value: function send(request, url) {
-      var options = arguments[2] === undefined ? {} : arguments[2];
+      var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
       return (0, _co2['default'])(regeneratorRuntime.mark(function callee$2$0() {
-        var sandbox, transformRequest, transformResponse, onerror, result, xhr, token;
+        var sandbox, transformRequest, transformResponse, onerror, headers, result, xhr, token, key;
         return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
           while (1) switch (context$3$0.prev = context$3$0.next) {
             case 0:
@@ -2981,15 +3063,16 @@ var OAuth2 = (function (_Transport2) {
               transformRequest = request.transformRequest;
               transformResponse = request.transformResponse;
               onerror = request.onerror;
+              headers = options.headers || {};
 
               if (!('retry' in options)) options.retry = true;
 
               result = undefined, xhr = undefined;
-              context$3$0.prev = 6;
-              context$3$0.next = 9;
+              context$3$0.prev = 7;
+              context$3$0.next = 10;
               return access(this.credentials, options);
 
-            case 9:
+            case 10:
               token = context$3$0.sent;
 
               xhr = new _xmlhttprequest2['default']();
@@ -2997,20 +3080,29 @@ var OAuth2 = (function (_Transport2) {
               xhr.open(request.method, url, true /* async */);
               xhr.setRequestHeader('Authorization', 'Bearer ' + token);
               if (transformRequest) transformRequest(xhr);
-              context$3$0.next = 17;
+              // _.forEach(_.keys(headers), function (n) {
+              //   xhr.setRequestHeader(n, headers[n]);
+              // });
+              for (key in headers) {
+                xhr.setRequestHeader(key, headers[key]);
+              }
+
+              context$3$0.next = 19;
               return xhr.send(request.requestData);
 
-            case 17:
+            case 19:
               result = transformResponse ? transformResponse(xhr) : xhr;
-              context$3$0.next = 28;
+              context$3$0.next = 31;
               break;
 
-            case 20:
-              context$3$0.prev = 20;
-              context$3$0.t0 = context$3$0['catch'](6);
+            case 22:
+              context$3$0.prev = 22;
+              context$3$0.t0 = context$3$0['catch'](7);
+
+              console.log('ERROR OCCURRED XHR response :: ', context$3$0.t0);
 
               if (!(options.retry && xhr.status === 401)) {
-                context$3$0.next = 26;
+                context$3$0.next = 29;
                 break;
               }
 
@@ -3020,19 +3112,19 @@ var OAuth2 = (function (_Transport2) {
               options.retry = false;
               return context$3$0.abrupt('return', this.send(request, url, options));
 
-            case 26:
+            case 29:
 
               if (onerror) onerror(context$3$0.t0);
               throw context$3$0.t0;
 
-            case 28:
+            case 31:
               return context$3$0.abrupt('return', result);
 
-            case 29:
+            case 32:
             case 'end':
               return context$3$0.stop();
           }
-        }, callee$2$0, this, [[6, 20]]);
+        }, callee$2$0, this, [[7, 22]]);
       }).bind(this));
     }
   }]);
@@ -3041,10 +3133,6 @@ var OAuth2 = (function (_Transport2) {
 })(Transport);
 
 exports.OAuth2 = OAuth2;
-
-/**
- * @return {Promise} promise that will resolve with access token.
- */
 function access(credentials, options) {
   if (!credentials.accessToken) {
     return getAccessToken(credentials, options);
@@ -3062,16 +3150,24 @@ function isExpired(credentials) {
 }
 
 var getAccessToken = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(credentials, options) {
-  var sandbox, xhr, data, now, response;
+  var sandbox, headers, xhr, key, data, now, response;
   return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
         sandbox = options.sandbox;
+        headers = options.headers || {};
         xhr = new _xmlhttprequest2['default']();
 
         if (sandbox) sandbox.add(xhr);
         xhr.open('POST', credentials.tokenUrl, true /* async */);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        // _.forEach(_.keys(headers), function (n) {
+        //   xhr.setRequestHeader(n, headers[n]);
+        // });
+        for (key in headers) {
+          xhr.setRequestHeader(key, headers[key]);
+        }
 
         data = _querystring2['default'].stringify({
           code: credentials.authorizationCode,
@@ -3081,10 +3177,10 @@ var getAccessToken = _co2['default'].wrap(regeneratorRuntime.mark(function calle
           grant_type: 'authorization_code'
         });
         now = Date.now();
-        context$1$0.next = 9;
+        context$1$0.next = 11;
         return xhr.send(data);
 
-      case 9:
+      case 11:
         response = JSON.parse(xhr.responseText);
 
         credentials.accessToken = response.access_token;
@@ -3093,7 +3189,7 @@ var getAccessToken = _co2['default'].wrap(regeneratorRuntime.mark(function calle
 
         return context$1$0.abrupt('return', response.access_token);
 
-      case 14:
+      case 16:
       case 'end':
         return context$1$0.stop();
     }
@@ -3101,16 +3197,23 @@ var getAccessToken = _co2['default'].wrap(regeneratorRuntime.mark(function calle
 }));
 
 var refreshAccessToken = _co2['default'].wrap(regeneratorRuntime.mark(function callee$0$0(credentials, options) {
-  var sandbox, xhr, data, now, response;
+  var sandbox, headers, xhr, key, data, now, response;
   return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
         sandbox = options.sandbox;
+        headers = options.headers || {};
         xhr = new _xmlhttprequest2['default']();
 
         if (sandbox) sandbox.add(xhr);
         xhr.open('POST', credentials.tokenUrl, true /* async */);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        // _.forEach(_.keys(headers), function (n) {
+        //   xhr.setRequestHeader(n, headers[n]);
+        // });
+        for (key in headers) {
+          xhr.setRequestHeader(key, headers[key]);
+        }
 
         data = _querystring2['default'].stringify({
           client_id: credentials.clientId,
@@ -3119,10 +3222,10 @@ var refreshAccessToken = _co2['default'].wrap(regeneratorRuntime.mark(function c
           grant_type: 'refresh_token'
         });
         now = Date.now();
-        context$1$0.next = 9;
+        context$1$0.next = 11;
         return xhr.send(data);
 
-      case 9:
+      case 11:
         response = JSON.parse(xhr.responseText);
 
         credentials.accessToken = response.access_token;
@@ -3130,7 +3233,7 @@ var refreshAccessToken = _co2['default'].wrap(regeneratorRuntime.mark(function c
 
         return context$1$0.abrupt('return', response.access_token);
 
-      case 13:
+      case 15:
       case 'end':
         return context$1$0.stop();
     }
@@ -3176,17 +3279,19 @@ var debug = _dereq_('./debug')('dav:webdav');
 
 function createObject(objectUrl, objectData, options) {
   var req = request.basic({ method: 'PUT', data: objectData });
-  return options.xhr.send(req, objectUrl, { sandbox: options.sandbox });
+  return options.xhr.send(req, objectUrl, { sandbox: options.sandbox, headers: options.headers });
 }
 
 function updateObject(objectUrl, objectData, etag, options) {
-  var req = request.basic({ method: 'PUT', data: objectData, etag: etag });
-  return options.xhr.send(req, objectUrl, { sandbox: options.sandbox });
+  var customOpts = etag ? { method: 'PUT', data: objectData, etag: etag } : { method: 'PUT', data: objectData };
+  var req = request.basic(customOpts);
+  return options.xhr.send(req, objectUrl, { sandbox: options.sandbox, headers: options.headers });
 }
 
 function deleteObject(objectUrl, etag, options) {
-  var req = request.basic({ method: 'DELETE', etag: etag });
-  return options.xhr.send(req, objectUrl, { sandbox: options.sandbox });
+  var customOpts = etag ? { method: 'DELETE', etag: etag } : { method: 'DELETE' };
+  var req = request.basic(customOpts);
+  return options.xhr.send(req, objectUrl, { sandbox: options.sandbox, headers: options.headers });
 }
 
 function syncCollection(collection, options) {
@@ -3224,7 +3329,7 @@ var supportedReportSet = _co2['default'].wrap(regeneratorRuntime.mark(function c
         });
         context$1$0.next = 4;
         return options.xhr.send(req, collection.url, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
       case 4:
@@ -3261,7 +3366,7 @@ var isCollectionDirty = _co2['default'].wrap(regeneratorRuntime.mark(function ca
         });
         context$1$0.next = 7;
         return options.xhr.send(req, collection.account.homeUrl, {
-          sandbox: options.sandbox
+          sandbox: options.sandbox, headers: options.headers
         });
 
       case 7:
@@ -3324,6 +3429,7 @@ var XMLHttpRequest = (function () {
 
     this.request = new Native(options);
     this.sandbox = null;
+    this.headers = null;
 
     /* readwrite */
     ['response', 'responseText', 'responseType', 'responseXML', 'timeout', 'upload', 'withCredentials'].forEach(function (attribute) {
@@ -3387,10 +3493,11 @@ var XMLHttpRequest = (function () {
       return new Promise(function (resolve, reject) {
         request.onreadystatechange = function () {
           if (request.readyState !== 4 /* done */) {
-            return;
-          }
+              return;
+            }
 
           if (request.status < 200 || request.status >= 400) {
+            console.log('ERROR OCCURRED XHR response :: ', native.status, " - ", native.responseText);
             return reject(new Error('Bad status: ' + request.status));
           }
 
@@ -7037,7 +7144,7 @@ if(typeof _dereq_ == 'function'){
 },{}],33:[function(_dereq_,module,exports){
 module.exports={
   "name": "dav",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "author": "Gareth Aye [:gaye] <gaye@mozilla.com>",
   "description": "WebDAV, CalDAV, and CardDAV client for nodejs and the browser",
   "license": "MPL-2.0",
