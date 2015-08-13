@@ -3497,7 +3497,7 @@ var XMLHttpRequest = (function () {
             }
 
           if (request.status < 200 || request.status >= 400) {
-            console.log('ERROR OCCURRED XHR response :: ', native.status, " - ", native.responseText);
+            console.log('ERROR OCCURRED XHR response :: ', request.status, " - ", request.responseText);
             return reject(new Error('Bad status: ' + request.status));
           }
 
