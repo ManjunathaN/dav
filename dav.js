@@ -1165,7 +1165,7 @@ var listCalendarObjects = _co2['default'].wrap(regeneratorRuntime.mark(function 
           namespace: ns.CALDAV
         }];
 
-        if (calendar.url && calendar.url.indexOf('caldav.icloud.com') > -1) {
+        if (calendar.url && calendar.url.indexOf('caldav.icloud.com') === -1) {
           customProps.push({
             name: 'getetag',
             namespace: ns.DAV
